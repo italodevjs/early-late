@@ -14,7 +14,7 @@ npm test
 npm run dev
 ```
 
-Open the printed local address, normally `http://127.0.0.1:4175`. `npm run build` produces `dist/`, which can be served by any static host. No environment variables, database or paid service are required. The optional web fonts fall back to system fonts if unavailable.
+Open the printed local address, normally `http://127.0.0.1:4175`. `npm run build` produces `dist/`, which can be served by any static host. No environment variables, database or paid service are required. All typography uses system fonts. The application makes no font or asset requests to third parties.
 
 ## Use
 
