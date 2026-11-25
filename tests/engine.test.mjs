@@ -76,3 +76,9 @@ test('the full example can be played precisely and replayed without changing res
   s.finish(); assert.equal(s.summary().accuracy,100); assert.equal(s.summary().miss,0);
   assert.deepEqual(replay(c,s.actions).summary(),s.summary());
 });
+test('ending during a hold never invents a future successful tail', () => {
+  const c=chart([note(0,0,1),note(2,1)]), s=new Session(c);
+  s.input({kind:'press',lane:0,ms:2000}); s.advance(2100); s.finish();
+  assert.equal(s.summary().precise,1); assert.equal(s.summary().miss,2); assert.equal(s.summary().score,1000);
+  assert.deepEqual(replay(c,s.actions).summary(),s.summary());
+});

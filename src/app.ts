@@ -22,6 +22,7 @@ let active = false, paused = false, playingReplay = false, replayCursor = 0, see
 let history: Run[] = [], offset = 0, calibration = false, samples: number[] = [];
 let lastFrame = 0;
 let lastCalibrationBeat = -1;
+let replayActions: Action[] = [];
 
 function notice(message: string, error = false): void { $('notice').textContent = message; $('notice').classList.toggle('error', error); }
 function save(): void {
@@ -122,6 +123,7 @@ async function start(replaying = false, calibrating = false): Promise<void> {
     if (audio) await audio.close();
     playingReplay = replaying; calibration = calibrating; samples = []; lastCalibrationBeat = -1; replayCursor = 0; seen = 0;
     if (replaying && history[0]) { chart = history[0].chart; offset = history[0].offset; renderChart(); }
+    replayActions = replaying ? (history[0]?.actions ?? []).map(a => ({ ...a })) : [];
     const runChart = calibrating ? validateChart({ version: 1, title: 'Tap calibration', bpm: 120, beats: 16, notes: [] }) : chart;
     session = new Session(runChart); audio = new PulseAudio(runChart);
     await audio.start(); active = true; paused = false; lastFrame = performance.now();
@@ -185,8 +187,8 @@ function frame(now: number): void {
   if (now - lastFrame > 1000) { void pauseToggle(); notice('Paused after a scheduling interruption. Resume when ready.', true); return; }
   lastFrame = now; audio.schedule();
   const raw = audio.clock.read(), ms = Math.max(0, raw - offset);
-  if (playingReplay && history[0]) {
-    const actions = history[0].actions;
+  if (playingReplay) {
+    const actions = replayActions;
     while (actions[replayCursor] && actions[replayCursor]!.ms <= ms) session.input(actions[replayCursor++]!);
     pads.forEach((p, i) => p.classList.toggle('held', session!.down.has(i)));
   }

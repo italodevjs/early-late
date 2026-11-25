@@ -1,4 +1,4 @@
-import { type Chart, durationMs, noteMs, validateChart } from './chart.js';
+import { type Chart, noteMs, validateChart } from './chart.js';
 export type Grade = 'precise' | 'close' | 'miss';
 export type Action = { kind: 'press' | 'release'; lane: number; ms: number };
 export type Judgment = { note: number; part: 'head' | 'tail'; grade: Grade; delta: number | null; at: number };
@@ -63,7 +63,13 @@ export class Session {
   }
   finish(): void {
     if (this.finished) return;
-    this.advance(durationMs(this.chart) + WINDOW);
+    this.chart.notes.forEach((n, i) => {
+      if (this.states[i] === 'waiting') {
+        this.award(i, 'head', 'miss', this.time);
+        if (n.length > 0) this.award(i, 'tail', 'miss', this.time);
+      } else if (this.states[i] === 'holding') this.award(i, 'tail', 'miss', this.time);
+      this.states[i] = 'done';
+    });
     this.down.clear();
     this.finished = true;
   }
