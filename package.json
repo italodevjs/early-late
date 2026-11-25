@@ -1,0 +1,12 @@
+{
+  "name": "early-late",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && node scripts/build.mjs",
+    "test": "tsc && node --test tests/*.test.mjs",
+    "dev": "npm run build && node scripts/serve.mjs"
+  },
+  "devDependencies": { "typescript": "5.9.3" }
+}
