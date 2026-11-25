@@ -29,7 +29,7 @@ Scores are derived by folding the judgment stream. The design deliberately avoid
 
 ## Audio and scheduling
 
-`PulseAudio` uses Web Audio oscillators, not audio files. The clock reads `AudioContext.currentTime`; pulses are scheduled up to 180 ms ahead. Closing a run closes its context and pending sound. Suspension freezes audio time during pause. The UI pauses after a frame interruption over one second or when the tab loses visibility. Main-thread load and browser throttling can still disrupt audio scheduling; this is a known limit, not smoothed into invented results.
+`PulseAudio` uses Web Audio oscillators, not audio files. The clock reads `AudioContext.currentTime`; pulses are scheduled up to 180 ms ahead. Closing a run closes its context and pending sound. Suspension freezes audio time during pause. A live pause releases held lanes before freezing, so lost keyup events cannot turn an interrupted hold into a fabricated completion. Replay pause freezes recorded state instead of inventing input. The UI pauses after a frame interruption over one second or when the tab loses visibility. Main-thread load and browser throttling can still disrupt audio scheduling; this is a known limit, not smoothed into invented results.
 
 Calibration records one tap per nearest beat, ignores count-in, and suggests the median after at least four samples. It estimates a user's offset against a particular setup. A calibrated offset should not be interpreted as an objective measure of output latency.
 

@@ -153,8 +153,11 @@ async function finish(completed: boolean): Promise<void> {
 }
 async function pauseToggle(): Promise<void> {
   if (!active || !audio) return;
+  if (!paused && !playingReplay && !calibration && session) {
+    for (const lane of [...session.down]) laneAction(lane, 'release');
+  }
   paused = !paused;
-  if (paused) { await audio.pause(); $('canvas-state').textContent = 'PAUSED'; $('canvas-state').hidden = false; }
+  if (paused) { await audio.pause(); $('canvas-state').textContent = 'PAUSED'; $('canvas-state').hidden = false; notice('Paused. Held lanes were released; resume when ready.'); }
   else { await audio.resume(); lastFrame = performance.now(); $('canvas-state').hidden = true; requestAnimationFrame(frame); }
   setControls();
 }

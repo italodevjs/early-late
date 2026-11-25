@@ -20,7 +20,7 @@ Open the printed local address, normally `http://127.0.0.1:4175`. `npm run build
 
 - Press **Play study**. Four count-in beats precede the first note.
 - Use **D F J K**, or touch the four lane keys. Press when a note crosses the red line. Hold long notes through the tail. Each lane in a chord must be played.
-- **Pause** or Escape freezes the audio clock. Moving away from the tab pauses the run. Releasing a hold early still breaks it; pause is not a hold-completion shortcut.
+- **Pause** or Escape freezes the audio clock and releases held lanes. Moving away from the tab pauses the run. A hold released before its grace window is a miss; pause is not a hold-completion shortcut.
 - Inspect the actual timing scatter after a run. **Replay last run** recomputes the score from recorded input timestamps. **Export evidence** saves those actions, the chart and the local summary as JSON.
 - Compose in the half-beat grid. White is a tap; orange is a hold head. Arrow keys move between cells; Enter or Space toggles a cell. Apply tempo, length and title changes explicitly. Reducing the length fails if notes would fall outside the chart.
 - Import/export charts as JSON. Imports are bounded to 64 KiB, 256 notes and 64 beats; they never load executable code, URLs or audio.

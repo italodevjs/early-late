@@ -66,3 +66,13 @@ test('calibration median resists isolated outliers and rejects missing/invalid s
   assert.equal(median([20,21,200,19,22]),21); assert.equal(median([10,20]),15);
   assert.throws(()=>median([])); assert.throws(()=>median([NaN]));
 });
+test('the full example can be played precisely and replayed without changing results', () => {
+  const c=pulseStudy(), s=new Session(c);
+  const actions=c.notes.flatMap(n=>[
+    {kind:'press',lane:n.lane,ms:noteMs(c,n)},
+    {kind:'release',lane:n.lane,ms:noteMs(c,n)+n.length*60000/c.bpm},
+  ]).sort((a,b)=>a.ms-b.ms);
+  for(const a of actions) s.input(a);
+  s.finish(); assert.equal(s.summary().accuracy,100); assert.equal(s.summary().miss,0);
+  assert.deepEqual(replay(c,s.actions).summary(),s.summary());
+});
