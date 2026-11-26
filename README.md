@@ -2,6 +2,8 @@
 
 A small rhythm laboratory for playing, composing and inspecting timing. Four lanes, one reference line, and a pulse synthesized in your browser. No account, downloaded songs or online leaderboard.
 
+![Actual rhythm study and chart editor](docs/screenshots/desktop.png)
+
 The project explores a specific engineering question: can gameplay judgments remain deterministic when browser frames arrive at irregular intervals? The engine takes timestamped input, processes missed notes and hold deadlines chronologically, and can recompute a run from its recorded actions. Rendering and sound scheduling are separate adapters.
 
 ## Run
