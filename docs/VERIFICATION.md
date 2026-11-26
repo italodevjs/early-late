@@ -24,6 +24,12 @@ Real screenshots were inspected for typography, alignment, hierarchy, control de
 
 ## Limits
 
+## Public deployment
+
+The application is published at https://italodevjs.github.io/early-late/ through GitHub Pages. The same Chromium flows were repeated successfully against that public origin on 2026-11-26, including real downloads and responsive captures. GitHub Actions builds and tests before publishing; no paid backend is involved.
+
+## Remaining limits
+
 The Windows WebKit test runtime lacks Web Audio. Its unsupported-audio error path and layout were verified; gameplay was not verified there. Actual Safari/iOS audio output and physical latency remain unverified.
 
 The screenshots and automated browser flows do not establish exhaustive accessibility, every device, perceptual audio synchronization or production reliability. Tests use synthetic public certificates/geometry, the credited NASA sample and original rhythm data, without private customer inputs.

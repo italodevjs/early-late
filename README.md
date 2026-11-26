@@ -1,5 +1,7 @@
 # Early / Late
 
+[Open the public demonstration](https://italodevjs.github.io/early-late/) · [Verification record](docs/VERIFICATION.md)
+
 A small rhythm laboratory for playing, composing and inspecting timing. Four lanes, one reference line, and a pulse synthesized in your browser. No account, downloaded songs or online leaderboard.
 
 ![Actual rhythm study and chart editor](docs/screenshots/desktop.png)
@@ -40,6 +42,6 @@ The test suite checks inclusive timing boundaries, duplicate input, chords, hold
 
 This is a timing study, not a clinical latency instrument or a competitive anti-cheat system. Browser event delivery, audio output buffering, display refresh, Bluetooth and human anticipation all influence the experience. The software knows its own audio timeline, not when sound physically reaches your ears. Reduced-motion settings do not remove essential gameplay motion. A screen reader can operate settings and hear judgments, but the falling-note game requires visual or auditory timing interpretation.
 
-The design problem grew from the author's private RHYTHM-VERSE Roblox experiment, whose deterministic chart/scoring/clock separation informed this independent TypeScript implementation. No private Git history, licensed commercial song, Roblox asset or client content is included. The pulse and chart are original to this project. AI tools assisted reconstruction, implementation, documentation and review; this repository does not claim exclusively human authorship or professional adoption.
+The design problem grew from an earlier private Roblox experiment, whose deterministic chart/scoring/clock separation informed this independent TypeScript implementation. No private Git history, licensed commercial song, Roblox asset or client content is included. The pulse and chart are original to this project. AI tools assisted reconstruction, implementation, documentation and review; this repository does not claim exclusively human authorship or professional adoption.
 
 MIT licensed. No analytics or server-side data collection. Up to 12 recent runs and your chart/settings are stored in this browser; **Clear** removes run history. Export before clearing browser storage.
