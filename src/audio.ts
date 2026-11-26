@@ -1,12 +1,24 @@
 import { type Chart, durationMs } from './chart.js';
 import { SongClock } from './engine.js';
 
+function createContext(): AudioContext {
+  if (!globalThis.AudioContext) throw new Error('Audio playback is unavailable in this browser. Try a current browser with audio enabled.');
+  return new globalThis.AudioContext();
+}
+
 export class PulseAudio {
-  private readonly context = new AudioContext();
+  private readonly context = createContext();
   readonly clock = new SongClock(() => this.context.currentTime * 1000);
   private next = 0;
+  private closed = false;
+  private transition: Promise<void> = Promise.resolve();
   constructor(readonly chart: Chart) {}
-  async start(): Promise<void> { await this.context.resume(); this.clock.start(); this.schedule(); }
+  private enqueue(operation: () => Promise<void>): Promise<void> {
+    const result = this.transition.then(operation);
+    this.transition = result.catch(() => {});
+    return result;
+  }
+  start(): Promise<void> { return this.enqueue(async () => { if (this.closed) return; await this.context.resume(); if (this.closed) return; this.clock.start(); this.schedule(); }); }
   schedule(): void {
     if (this.clock.state !== 'playing') return;
     const stepMs = 30000 / this.chart.bpm;
@@ -26,7 +38,7 @@ export class PulseAudio {
       osc.start(t); osc.stop(t + 0.1);
     }
   }
-  async pause(): Promise<void> { this.clock.pause(); await this.context.suspend(); }
-  async resume(): Promise<void> { await this.context.resume(); this.clock.resume(); }
-  async close(): Promise<void> { await this.context.close(); }
+  pause(): Promise<void> { return this.enqueue(async () => { if (this.closed) return; this.clock.pause(); await this.context.suspend(); }); }
+  resume(): Promise<void> { return this.enqueue(async () => { if (this.closed) return; await this.context.resume(); if (!this.closed) this.clock.resume(); }); }
+  close(): Promise<void> { if (this.closed) return this.transition; this.closed = true; this.clock.pause(); return this.enqueue(() => this.context.close()); }
 }

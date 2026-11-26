@@ -23,6 +23,7 @@ let history: Run[] = [], offset = 0, calibration = false, samples: number[] = []
 let lastFrame = 0;
 let lastCalibrationBeat = -1;
 let replayActions: Action[] = [];
+let transportBusy = false;
 
 function notice(message: string, error = false): void { $('notice').textContent = message; $('notice').classList.toggle('error', error); }
 function save(): void {
@@ -95,10 +96,10 @@ function renderChart(): void {
 function errorText(e: unknown): string { return e instanceof Error ? e.message : 'The operation could not be completed.'; }
 function formatTime(ms: number): string { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; }
 function setControls(): void {
-  button('start').disabled = active;
-  button('pause').disabled = !active; button('pause').textContent = paused ? 'Resume' : 'Pause';
-  button('stop').disabled = !active;
-  button('replay').disabled = active || !history.length;
+  button('start').disabled = active || transportBusy;
+  button('pause').disabled = !active || transportBusy; button('pause').textContent = paused ? 'Resume' : 'Pause';
+  button('stop').disabled = !active || transportBusy;
+  button('replay').disabled = active || transportBusy || !history.length;
   button('export-result').disabled = !history.length;
   for (const id of ['bpm', 'beats', 'chart-title', 'offset', 'import-chart']) input(id).disabled = active;
   for (const id of ['reset-chart', 'calibrate']) button(id).disabled = active;
@@ -117,8 +118,8 @@ function score(): void {
   }
 }
 async function start(replaying = false, calibrating = false): Promise<void> {
-  if (active) return;
-  active = true; setControls();
+  if (active || transportBusy) return;
+  active = true; transportBusy = true; setControls();
   try {
     if (audio) await audio.close();
     playingReplay = replaying; calibration = calibrating; samples = []; lastCalibrationBeat = -1; replayCursor = 0; seen = 0;
@@ -131,11 +132,12 @@ async function start(replaying = false, calibrating = false): Promise<void> {
     $('canvas-state').hidden = false;
     notice(calibrating ? 'Tap Space or any lane key with each beat. First four beats are count-in.' : replaying ? 'Replaying recorded local inputs. The engine recomputes every judgment.' : 'Four-beat count-in. D F J K, or touch the keys.');
     setControls(); requestAnimationFrame(frame);
-  } catch (e) { active = false; setControls(); notice(`Audio could not start: ${errorText(e)}`, true); }
+  } catch (e) { active = false; notice(`Audio could not start: ${errorText(e)}`, true); }
+  finally { transportBusy = false; setControls(); }
 }
 async function finish(completed: boolean): Promise<void> {
-  if (!active || !session) return;
-  active = false; paused = false;
+  if (!active || !session || transportBusy) return;
+  active = false; paused = false; transportBusy = true; setControls();
   if (audio) { await audio.close(); audio = null; }
   session.finish(); score();
   if (calibration) {
@@ -151,20 +153,22 @@ async function finish(completed: boolean): Promise<void> {
   $('canvas-state').textContent = calibration ? 'CALIBRATION COMPLETE' : completed ? 'STUDY COMPLETE' : 'RUN ENDED';
   $('canvas-state').hidden = false;
   pads.forEach(p => p.classList.remove('held'));
-  setControls(); renderChart();
+  transportBusy = false; setControls(); renderChart();
 }
 async function pauseToggle(): Promise<void> {
-  if (!active || !audio) return;
+  if (!active || !audio || transportBusy) return;
   if (!paused && !playingReplay && !calibration && session) {
     for (const lane of [...session.down]) laneAction(lane, 'release');
   }
-  paused = !paused;
-  if (paused) { await audio.pause(); $('canvas-state').textContent = 'PAUSED'; $('canvas-state').hidden = false; notice('Paused. Held lanes were released; resume when ready.'); }
-  else { await audio.resume(); lastFrame = performance.now(); $('canvas-state').hidden = true; requestAnimationFrame(frame); }
-  setControls();
+  paused = !paused; transportBusy = true; setControls();
+  try {
+    if (paused) { await audio.pause(); $('canvas-state').textContent = 'PAUSED'; $('canvas-state').hidden = false; notice('Paused. Held lanes were released; resume when ready.'); }
+    else { await audio.resume(); lastFrame = performance.now(); $('canvas-state').hidden = true; requestAnimationFrame(frame); }
+  } catch (e) { paused = true; audio.clock.pause(); notice(`Audio transition failed: ${errorText(e)}. End this run and retry.`, true); }
+  finally { transportBusy = false; setControls(); }
 }
 function laneAction(lane: number, kind: Action['kind']): void {
-  if (!active || !audio || !session || playingReplay) return;
+  if (!active || !audio || !session || playingReplay || transportBusy) return;
   if (calibration) { if (kind === 'press' && !paused) sample(); return; }
   if (paused && kind === 'press') return;
   const ms = Math.max(0, audio.clock.read() - offset);
@@ -183,7 +187,7 @@ function sample(): void {
   $('calibration-result').textContent = `${samples.length} taps · median ${Math.round(median(samples))} ms`;
 }
 function frame(now: number): void {
-  if (!active || paused || !audio || !session) return;
+  if (!active || paused || !audio || !session || transportBusy) return;
   if (now - lastFrame > 1000) { void pauseToggle(); notice('Paused after a scheduling interruption. Resume when ready.', true); return; }
   lastFrame = now; audio.schedule();
   const raw = audio.clock.read(), ms = Math.max(0, raw - offset);
